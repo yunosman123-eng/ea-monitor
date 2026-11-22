@@ -133,7 +133,7 @@ async function handleLogin() {
   document.getElementById("loginErr").classList.add("hidden");
 
   if (!val) { showErr("Sila masukkan No. Akaun MT4 atau Kod Admin."); return; }
-  if (val === ADMIN_ID) {
+  if (val.toUpperCase() === ADMIN_ID) {
     localStorage.setItem("gs_role", "admin");
     openAdmin();
     return;
@@ -157,9 +157,11 @@ async function checkClient(accNo) {
       const line = lines[i].trim();
       if (!line) continue;
       const parts = line.split("|");
-      if (parts.length >= 2 && parts.trim() === accNo) {
+      const colAcc = parts.shift();
+      const colExp = parts.shift();
+      if (colAcc && colExp && colAcc.trim() === accNo) {
         found = true;
-        expStr = parts.trim();
+        expStr = colExp.trim();
         break;
       }
     }
@@ -196,7 +198,7 @@ function openClient(accNo, expStr) {
 
   loadClient(accNo);
   if (timer) clearInterval(timer);
-  timer = setInterval(() => loadClient(accNo), 5000);
+  timer = setInterval(function() { loadClient(accNo); }, 5000);
 }
 
 async function loadClient(accNo) {
@@ -215,10 +217,9 @@ async function loadClient(accNo) {
 
     const p = Number(d.profit || 0);
     const pEl = document.getElementById("cProf");
-    pEl.textContent = (p >= 0 ? "+" : "") + p.toFixed(2) + " " + curr;
-    pEl.className = "stat-val " + (p >= 0 ? "green" : "red");
-
 Use code with caution.
+pEl.textContent = (p >= 0 ? "+" : "") + p.toFixed(2) + " " + curr;
+pEl.className = "stat-val " + (p >= 0 ? "green" : "red");
 const m = Number(d.marginLevel || 0);
 document.getElementById("cMarg").textContent = m > 0 ? m.toFixed(1) + "%" : "Tiada Posisi";
 document.getElementById("cStat").textContent = d.status || "-";
@@ -253,7 +254,7 @@ return;
 }
 const keys = Object.keys(all);
 let tBal = 0, tProf = 0, html = "";
-keys.forEach(acc => {
+keys.forEach(function(acc) {
 const d = all[acc];
 const bal = Number(d.balance || 0);
 const prof = Number(d.profit || 0);
@@ -279,7 +280,8 @@ tp.className = "stat-val " + (tProf >= 0 ? "green" : "red");
 list.innerHTML = html;
 } catch (e) {}
 }
-function logout(clear = true) {
+function logout(clear) {
+if (clear === undefined) clear = true;
 if (timer) clearInterval(timer);
 if (clear) {
 localStorage.removeItem("gs_role");
