@@ -217,7 +217,7 @@ async function loadClient(accNo) {
 
     const p = Number(d.profit || 0);
     const pEl = document.getElementById("cProf");
-Use code with caution.
+
 pEl.textContent = (p >= 0 ? "+" : "") + p.toFixed(2) + " " + curr;
 pEl.className = "stat-val " + (p >= 0 ? "green" : "red");
 const m = Number(d.marginLevel || 0);
