@@ -1,331 +1,293 @@
-
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#0f172a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>GridStop EA Monitor</title>
-  <script src="https://tailwindcss.com"></script>
-  <style>
-    body { background-color: #0b1120; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-    .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(148, 163, 184, 0.15); }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0b1120">
+<title>GridStop EA Monitor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background: #0b1120; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; max-width: 440px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1e293b; }
+  h1 { font-size: 18px; color: #fbbf24; letter-spacing: 0.5px; }
+  .sub { font-size: 12px; color: #94a3b8; }
+  .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-top: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+  .hidden { display: none !important; }
+  label { display: block; font-size: 12px; color: #cbd5e1; margin: 16px 0 6px; }
+  input { width: 100%; background: #0f172a; border: 1px solid #475569; color: #fff; padding: 14px; border-radius: 12px; font-size: 16px; outline: none; }
+  input:focus { border-color: #fbbf24; }
+  .btn { width: 100%; background: #f59e0b; color: #0f172a; font-weight: 700; border: none; padding: 14px; border-radius: 12px; font-size: 15px; margin-top: 16px; cursor: pointer; }
+  .btn:active { background: #d97706; }
+  .btn-out { background: rgba(225,29,72,0.15); color: #fb7185; border: 1px solid rgba(225,29,72,0.4); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .err { background: rgba(159,18,57,0.4); border: 1px solid #be123c; color: #fda4af; font-size: 12px; padding: 10px; border-radius: 8px; margin-top: 12px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .stat-box { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 14px; }
+  .stat-lbl { font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+  .stat-val { font-size: 18px; font-weight: 700; }
+  .green { color: #34d399; }
+  .red { color: #fb7185; }
+  .amber { color: #fbbf24; }
+  .sky { color: #38bdf8; }
+  .row { display: flex; justify-content: space-between; font-size: 12px; padding: 6px 0; border-bottom: 1px solid rgba(51,65,85,0.5); }
+  .row:last-child { border-bottom: none; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
+  .online { background: rgba(16,185,129,0.2); color: #34d399; }
+  .offline { background: #334155; color: #94a3b8; }
+  footer { text-align: center; font-size: 11px; color: #64748b; padding: 16px 0 4px; }
+</style>
 </head>
-<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
+<body>
 
-  <header class="flex items-center justify-between py-3 border-b border-slate-800">
-    <div>
-      <h1 class="text-lg font-bold text-amber-400 tracking-wide">GRIDSTOP MONITOR</h1>
-      <p class="text-xs text-slate-400" id="headerSubtitle">Sistem Pemantauan Akaun Berlesen</p>
+<header>
+  <div>
+    <h1>GRIDSTOP MONITOR</h1>
+    <div class="sub" id="headerSub">Sistem Pemantauan Akaun Berlesen</div>
+  </div>
+  <button id="btnLogout" class="btn-out hidden" onclick="logout()">Log Keluar</button>
+</header>
+
+<main id="loginView">
+  <div class="card">
+    <h2 style="font-size:20px; margin-bottom:4px;">Log Masuk Akaun</h2>
+    <p class="sub">Masukkan No. Akaun MT4 berlesen atau Kod Akses Admin.</p>
+    <label>No. Akaun MT4 / Kod Akses</label>
+    <input type="text" id="loginInput" placeholder="Contoh: 53109795">
+    <div id="loginErr" class="err hidden"></div>
+    <button id="btnLogin" class="btn" onclick="handleLogin()">Semak Lesen &amp; Masuk</button>
+  </div>
+</main>
+
+<main id="clientView" class="hidden">
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div class="stat-lbl">Nombor Akaun</div>
+        <div style="font-size:22px; font-weight:700;" id="cAcc">-</div>
+        <div class="sub" id="cName">-</div>
+      </div>
+      <span id="cBadge" class="badge offline">OFFLINE</span>
     </div>
-    <button id="btnLogout" onclick="logout()" class="hidden text-xs bg-rose-600/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg font-medium">
-      Log Keluar
-    </button>
-  </header>
-
-  <main id="loginSection" class="my-auto py-8">
-    <div class="glass rounded-2xl p-6 shadow-xl">
-      <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mb-4">
-        <span class="text-2xl">📊</span>
-      </div>
-      <h2 class="text-xl font-bold mb-1">Log Masuk Akaun</h2>
-      <p class="text-xs text-slate-400 mb-5">Masukkan Nombor Akaun MT4 berlesen anda untuk memantau prestasi secara langsung.</p>
-
-      <label class="block text-xs font-medium text-slate-300 mb-1.5">No. Akaun MT4 / Kod Akses</label>
-      <input type="text" id="loginInput" placeholder="Contoh: 53109795"
-        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-base focus:outline-none focus:border-amber-400 mb-4" />
-
-      <div id="loginError" class="hidden text-xs text-rose-400 bg-rose-950/60 border border-rose-800 rounded-lg p-3 mb-4"></div>
-
-      <button id="btnLogin" onclick="handleLogin()"
-        class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/20">
-        Semak Lesen & Masuk
-      </button>
+    <div style="display:flex; justify-content:space-between; font-size:12px; color:#94a3b8; margin-top:12px; padding-top:10px; border-top:1px solid #334155;">
+      <span>Luput: <strong class="amber" id="cExp">-</strong></span>
+      <span>Pair: <strong style="color:#fff;" id="cSym">-</strong></span>
     </div>
-  </main>
+  </div>
 
-  <main id="clientDashboard" class="hidden py-5 space-y-4">
-    <div class="glass rounded-2xl p-5">
-      <div class="flex justify-between items-start mb-3">
-        <div>
-          <span class="text-xs text-slate-400">Nombor Akaun</span>
-          <h2 class="text-2xl font-bold text-white" id="cAccount">-</h2>
-          <p class="text-xs text-slate-400" id="cName">-</p>
-        </div>
-        <span id="cLiveBadge" class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">● LIVE</span>
-      </div>
-      <div class="flex justify-between text-xs text-slate-400 pt-3 border-t border-slate-700/60">
-        <span>Lesen Tamat: <strong class="text-amber-400" id="cExpiry">-</strong></span>
-        <span>Pair: <strong class="text-slate-200" id="cSymbol">-</strong></span>
-      </div>
+  <div class="grid2">
+    <div class="stat-box"><div class="stat-lbl">Balance</div><div class="stat-val" id="cBal">0.00</div></div>
+    <div class="stat-box"><div class="stat-lbl">Equity</div><div class="stat-val sky" id="cEq">0.00</div></div>
+    <div class="stat-box"><div class="stat-lbl">Running Profit</div><div class="stat-val green" id="cProf">0.00</div></div>
+    <div class="stat-box"><div class="stat-lbl">Margin Level</div><div class="stat-val amber" id="cMarg">0%</div></div>
+  </div>
+
+  <div class="card" style="padding:14px;">
+    <div class="row"><span style="color:#94a3b8;">Status EA</span><strong id="cStat">-</strong></div>
+    <div class="row"><span style="color:#94a3b8;">Posisi Aktif / Pending</span><strong id="cOrd">0 / 0</strong></div>
+    <div class="row"><span style="color:#94a3b8;">Kemas Kini Terakhir</span><span id="cTime">-</span></div>
+  </div>
+</main>
+
+<main id="adminView" class="hidden">
+  <div class="card" style="border-color:rgba(245,158,11,0.4);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span class="amber" style="font-size:12px; font-weight:700;">PANEL MASTER ADMIN</span>
+      <span class="badge online" id="aCount">0 Akaun</span>
     </div>
-
-    <div class="grid grid-cols-2 gap-3">
-      <div class="glass rounded-2xl p-4">
-        <p class="text-xs text-slate-400 mb-1">Balance</p>
-        <p class="text-xl font-bold text-white" id="cBalance">0.00</p>
-      </div>
-      <div class="glass rounded-2xl p-4">
-        <p class="text-xs text-slate-400 mb-1">Equity</p>
-        <p class="text-xl font-bold text-sky-400" id="cEquity">0.00</p>
-      </div>
-      <div class="glass rounded-2xl p-4">
-        <p class="text-xs text-slate-400 mb-1">Running Profit</p>
-        <p class="text-xl font-bold text-emerald-400" id="cProfit">0.00</p>
-      </div>
-      <div class="glass rounded-2xl p-4">
-        <p class="text-xs text-slate-400 mb-1">Margin Level</p>
-        <p class="text-xl font-bold text-amber-300" id="cMargin">0%</p>
-      </div>
+    <div class="grid2">
+      <div><div class="stat-lbl">Jumlah Modal Klien</div><div class="stat-val" id="aBal">0.00</div></div>
+      <div><div class="stat-lbl">Jumlah Floating</div><div class="stat-val green" id="aProf">0.00</div></div>
     </div>
+  </div>
 
-    <div class="glass rounded-2xl p-4 space-y-2 text-xs">
-      <div class="flex justify-between">
-        <span class="text-slate-400">Status EA:</span>
-        <span class="font-semibold text-white" id="cStatus">-</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-slate-400">Posisi Aktif / Pending:</span>
-        <span class="font-semibold text-white" id="cOrders">0 / 0</span>
-      </div>
-      <div class="flex justify-between">
-        <span class="text-slate-400">Kemas Kini Terakhir:</span>
-        <span class="text-slate-300" id="cLastUpdate">-</span>
-      </div>
-    </div>
-  </main>
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+    <span style="font-size:13px; font-weight:700; color:#cbd5e1;">Senarai Akaun Pelanggan</span>
+    <button onclick="loadAdmin()" style="background:none; border:none; color:#fbbf24; font-size:12px; text-decoration:underline; cursor:pointer;">Refresh</button>
+  </div>
+  <div id="aList"><p class="sub" style="text-align:center; padding:24px 0;">Memuatkan data...</p></div>
+</main>
 
-  <main id="adminDashboard" class="hidden py-5 space-y-4">
-    <div class="glass rounded-2xl p-4 bg-gradient-to-r from-amber-500/10 to-slate-800/60 border-amber-500/30">
-      <div class="flex justify-between items-center mb-2">
-        <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Panel Master Admin</span>
-        <span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded" id="aTotalClients">0 Akaun</span>
-      </div>
-      <div class="grid grid-cols-2 gap-3 mt-3">
-        <div>
-          <p class="text-xs text-slate-400">Jumlah Modal Klien</p>
-          <p class="text-lg font-bold text-white" id="aTotalBalance">0.00</p>
-        </div>
-        <div>
-          <p class="text-xs text-slate-400">Jumlah Floating</p>
-          <p class="text-lg font-bold text-emerald-400" id="aTotalProfit">0.00</p>
-        </div>
-      </div>
-    </div>
+<footer>&copy; 2026 GridStop EA Systems</footer>
 
-    <div class="flex justify-between items-center">
-      <h3 class="text-sm font-bold text-slate-300">Senarai Semua Akaun Pelanggan</h3>
-      <button onclick="loadAdminData()" class="text-xs text-amber-400 underline">Refresh</button>
-    </div>
+<script>
+const GIST_URL = "https://githubusercontent.com";
+const DB_URL   = "https://firebasedatabase.app";
+const ADMIN_ID = "ADMIN2026";
+let timer = null;
 
-    <div id="adminClientList" class="space-y-3">
-      <p class="text-xs text-slate-400 text-center py-6">Memuatkan data semua pelanggan...</p>
-    </div>
-  </main>
+window.onload = function() {
+  const role = localStorage.getItem("gs_role");
+  const acc  = localStorage.getItem("gs_acc");
+  if (role === "admin") openAdmin();
+  else if (role === "client" && acc) checkClient(acc);
+};
 
-  <footer class="text-center text-[11px] text-slate-500 py-3">
-    &copy; 2026 GridStop EA Systems &bull; Data Masa Nyata
-  </footer>
+function showErr(msg) {
+  const el = document.getElementById("loginErr");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+}
 
-  <script>
-    const GIST_LICENSE_URL = "https://githubusercontent.com";
-    const FIREBASE_DB_URL  = "https://firebasedatabase.app";
-    const ADMIN_PIN        = "ADMIN2026";
+async function handleLogin() {
+  const val = document.getElementById("loginInput").value.trim();
+  const btn = document.getElementById("btnLogin");
+  document.getElementById("loginErr").classList.add("hidden");
 
-    let refreshTimer = null;
+  if (!val) { showErr("Sila masukkan No. Akaun MT4 atau Kod Admin."); return; }
+  if (val === ADMIN_ID) {
+    localStorage.setItem("gs_role", "admin");
+    openAdmin();
+    return;
+  }
 
-    window.onload = () => {
-      const savedRole = localStorage.getItem("gs_role");
-      const savedAcc  = localStorage.getItem("gs_account");
-      if (savedRole === "admin") {
-        showAdminDashboard();
-      } else if (savedRole === "client" && savedAcc) {
-        verifyAndOpenClient(savedAcc);
-      }
-    };
+  btn.textContent = "Menyemak Lesen...";
+  btn.disabled = true;
+  await checkClient(val);
+  btn.textContent = "Semak Lesen & Masuk";
+  btn.disabled = false;
+}
 
-    async function handleLogin() {
-      const val = document.getElementById("loginInput").value.trim();
-      const errBox = document.getElementById("loginError");
-      const btn = document.getElementById("btnLogin");
-      errBox.classList.add("hidden");
+async function checkClient(accNo) {
+  try {
+    const res = await fetch(GIST_URL + "?t=" + Date.now());
+    const txt = await res.text();
+    const lines = txt.split("\n");
+    let found = false, expStr = "";
 
-      if (!val) {
-        showError("Sila masukkan nombor akaun trading MT4 anda.");
-        return;
-      }
-
-      if (val === ADMIN_PIN) {
-        localStorage.setItem("gs_role", "admin");
-        showAdminDashboard();
-        return;
-      }
-
-      btn.innerText = "Menyemak Lesen...";
-      btn.disabled = true;
-      await verifyAndOpenClient(val);
-      btn.innerText = "Semak Lesen & Masuk";
-      btn.disabled = false;
-    }
-
-    async function verifyAndOpenClient(accNo) {
-      try {
-        const res = await fetch(GIST_LICENSE_URL + "?t=" + Date.now());
-        const text = await res.text();
-        const lines = text.split("\n");
-
-        let found = false;
-        let expiryStr = "";
-
-        for (let line of lines) {
-          line = line.trim();
-          if (!line) continue;
-          const parts = line.split("|");
-          if (parts.length >= 2 && parts[0].trim() === accNo) {
-            found = true;
-            expiryStr = parts[1].trim();
-            break;
-          }
-        }
-
-        if (!found) {
-          logout(false);
-          showError("Akses Ditolak: Nombor akaun " + accNo + " tiada dalam senarai lesen aktif.");
-          return;
-        }
-
-        const expDate = new Date(expiryStr.replace(/\./g, "-") + "T23:59:59");
-        if (new Date() > expDate) {
-          logout(false);
-          showError("Lesen Tamat Tempoh pada " + expiryStr + ". Sila hubungi admin untuk pembaharuan.");
-          return;
-        }
-
-        localStorage.setItem("gs_role", "client");
-        localStorage.setItem("gs_account", accNo);
-        localStorage.setItem("gs_expiry", expiryStr);
-        showClientDashboard(accNo, expiryStr);
-
-      } catch (e) {
-        showError("Gagal menyambung ke pelayan lesen. Sila semak sambungan internet anda.");
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const parts = line.split("|");
+      if (parts.length >= 2 && parts.trim() === accNo) {
+        found = true;
+        expStr = parts.trim();
+        break;
       }
     }
 
-    function showClientDashboard(accNo, expiryStr) {
-      document.getElementById("loginSection").classList.add("hidden");
-      document.getElementById("adminDashboard").classList.add("hidden");
-      document.getElementById("clientDashboard").classList.remove("hidden");
-      document.getElementById("btnLogout").classList.remove("hidden");
-      document.getElementById("headerSubtitle").innerText = "Akaun Pelanggan: " + accNo;
-      document.getElementById("cAccount").innerText = accNo;
-      document.getElementById("cExpiry").innerText = expiryStr;
-
-      loadClientData(accNo);
-      if (refreshTimer) clearInterval(refreshTimer);
-      refreshTimer = setInterval(() => loadClientData(accNo), 5000);
+    if (!found) {
+      logout(false);
+      showErr("Akses Ditolak: Akaun " + accNo + " tiada dalam senarai lesen aktif.");
+      return;
     }
 
-    async function loadClientData(accNo) {
-      try {
-        const res = await fetch(`${FIREBASE_DB_URL}/accounts/${accNo}.json`);
-        const data = await res.json();
-        if (!data) {
-          document.getElementById("cStatus").innerText = "Menunggu sambungan pertama dari MT4...";
-          return;
-        }
+    const expDate = new Date(expStr.replace(/\./g, "-") + "T23:59:59");
+    if (new Date() > expDate) {
+      logout(false);
+      showErr("Lesen telah tamat tempoh pada " + expStr + ".");
+      return;
+    }
 
-        const curr = data.currency || "USD";
+    localStorage.setItem("gs_role", "client");
+    localStorage.setItem("gs_acc", accNo);
+    openClient(accNo, expStr);
+  } catch (e) {
+    showErr("Ralat sambungan pelayan lesen. Sila cuba lagi.");
+  }
+}
+
+function openClient(accNo, expStr) {
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("adminView").classList.add("hidden");
+  document.getElementById("clientView").classList.remove("hidden");
+  document.getElementById("btnLogout").classList.remove("hidden");
+  document.getElementById("headerSub").textContent = "Akaun Pelanggan: " + accNo;
+  document.getElementById("cAcc").textContent = accNo;
+  document.getElementById("cExp").textContent = expStr;
+
+  loadClient(accNo);
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => loadClient(accNo), 5000);
+}
+
+async function loadClient(accNo) {
+  try {
+    const res = await fetch(DB_URL + "/accounts/" + accNo + ".json");
+    const d = await res.json();
+    if (!d) {
+      document.getElementById("cStat").textContent = "Menunggu data pertama dari MT4...";
+      return;
+    }
+    const curr = d.currency || "USD";
+    document.getElementById("cName").textContent = (d.name || "Trader") + " (" + (d.broker || "MT4") + ")";
+    document.getElementById("cSym").textContent = d.symbol || "-";
+    document.getElementById("cBal").textContent = Number(d.balance || 0).toFixed(2) + " " + curr;
+    document.getElementById("cEq").textContent = Number(d.equity || 0).toFixed(2) + " " + curr;
+
+    const p = Number(d.profit || 0);
+    const pEl = document.getElementById("cProf");
+    pEl.textContent = (p >= 0 ? "+" : "") + p.toFixed(2) + " " + curr;
+    pEl.className = "stat-val " + (p >= 0 ? "green" : "red");
+
 Use code with caution.
-document.getElementById("cName").innerText = (data.name || "Trader") + " (" + (data.broker || "MT4") + ")";
-document.getElementById("cSymbol").innerText = data.symbol || "-";
-document.getElementById("cBalance").innerText = Number(data.balance || 0).toFixed(2) + " " + curr;
-document.getElementById("cEquity").innerText = Number(data.equity || 0).toFixed(2) + " " + curr;
-const profit = Number(data.profit || 0);
-const pEl = document.getElementById("cProfit");
-pEl.innerText = (profit >= 0 ? "+" : "") + profit.toFixed(2) + " " + curr;
-pEl.className = "text-xl font-bold " + (profit >= 0 ? "text-emerald-400" : "text-rose-400");
-const mLvl = Number(data.marginLevel || 0);
-document.getElementById("cMargin").innerText = mLvl > 0 ? mLvl.toFixed(1) + "%" : "Tiada Posisi";
-document.getElementById("cStatus").innerText = data.status || "-";
-document.getElementById("cOrders").innerText = ${data.openOrders || 0} Aktif / ${data.pendingOrders || 0} Pending;
-if (data.lastUpdate) {
-const d = new Date(data.lastUpdate * 1000);
-document.getElementById("cLastUpdate").innerText = d.toLocaleTimeString();
-const isOnline = (Math.floor(Date.now() / 1000) - data.lastUpdate) < 60;
-const badge = document.getElementById("cLiveBadge");
-badge.innerText = isOnline ? "● ONLINE" : "● OFFLINE";
-badge.className = "text-xs px-2.5 py-1 rounded-full font-semibold " + (isOnline ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-700 text-slate-400");
+const m = Number(d.marginLevel || 0);
+document.getElementById("cMarg").textContent = m > 0 ? m.toFixed(1) + "%" : "Tiada Posisi";
+document.getElementById("cStat").textContent = d.status || "-";
+document.getElementById("cOrd").textContent = (d.openOrders || 0) + " Aktif / " + (d.pendingOrders || 0) + " Pending";
+if (d.lastUpdate) {
+document.getElementById("cTime").textContent = new Date(d.lastUpdate * 1000).toLocaleTimeString();
+const online = (Math.floor(Date.now() / 1000) - d.lastUpdate) < 60;
+const b = document.getElementById("cBadge");
+b.textContent = online ? "● ONLINE" : "● OFFLINE";
+b.className = "badge " + (online ? "online" : "offline");
 }
-} catch (e) {
-console.error(e);
+} catch (e) {}
 }
-}
-function showAdminDashboard() {
-document.getElementById("loginSection").classList.add("hidden");
-document.getElementById("clientDashboard").classList.add("hidden");
-document.getElementById("adminDashboard").classList.remove("hidden");
+function openAdmin() {
+document.getElementById("loginView").classList.add("hidden");
+document.getElementById("clientView").classList.add("hidden");
+document.getElementById("adminView").classList.remove("hidden");
 document.getElementById("btnLogout").classList.remove("hidden");
-document.getElementById("headerSubtitle").innerText = "Mod Kawalan Penuh Admin";
-loadAdminData();
-if (refreshTimer) clearInterval(refreshTimer);
-refreshTimer = setInterval(loadAdminData, 8000);
+document.getElementById("headerSub").textContent = "Mod Kawalan Penuh Admin";
+loadAdmin();
+if (timer) clearInterval(timer);
+timer = setInterval(loadAdmin, 8000);
 }
-async function loadAdminData() {
+async function loadAdmin() {
 try {
-const res = await fetch(${FIREBASE_DB_URL}/accounts.json);
-const allData = await res.json();
-const listEl = document.getElementById("adminClientList");
-if (!allData) {
-listEl.innerHTML = <p class="text-xs text-slate-400 text-center py-6">Belum ada data akaun diterima daripada MT4.</p>;
+const res = await fetch(DB_URL + "/accounts.json");
+const all = await res.json();
+const list = document.getElementById("aList");
+if (!all) {
+list.innerHTML = 'Belum ada data akaun diterima daripada MT4.';
 return;
 }
-const keys = Object.keys(allData);
-let totalBal = 0;
-let totalProf = 0;
-let html = "";
+const keys = Object.keys(all);
+let tBal = 0, tProf = 0, html = "";
 keys.forEach(acc => {
-const d = allData[acc];
+const d = all[acc];
 const bal = Number(d.balance || 0);
 const prof = Number(d.profit || 0);
-totalBal += bal;
-totalProf += prof;
-const isOnline = d.lastUpdate && ((Math.floor(Date.now() / 1000) - d.lastUpdate) < 60);
-const profColor = prof >= 0 ? "text-emerald-400" : "text-rose-400";
-html += <div class="glass rounded-xl p-4 space-y-2"> <div class="flex justify-between items-start"> <div> <span class="font-bold text-white text-sm">${acc}</span> <span class="text-xs text-slate-400 block">${d.name || "Klien"} (${d.symbol || "-"})</span> </div> <span class="text-[11px] px-2 py-0.5 rounded-full ${isOnline ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}"> ${isOnline ? 'ONLINE' : 'OFFLINE'} </span> </div> <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700/50 text-xs"> <div> <span class="text-slate-400 block">Balance</span> <strong class="text-white">${bal.toFixed(2)}</strong> </div> <div> <span class="text-slate-400 block">Profit</span> <strong class="${profColor}">${prof >= 0 ? '+' : ''}${prof.toFixed(2)}</strong> </div> <div> <span class="text-slate-400 block">Luput</span> <strong class="text-amber-300">${d.expiry || '-'}</strong> </div> </div> <div class="text-[11px] text-slate-400 flex justify-between pt-1"> <span>Status: ${d.status || '-'}</span> <span>Margin: ${Number(d.marginLevel || 0).toFixed(0)}%</span> </div> </div>;
+tBal += bal; tProf += prof;
+const online = d.lastUpdate && ((Math.floor(Date.now() / 1000) - d.lastUpdate) < 60);
+html += '' +
+'' +
+'' + acc + '' + (d.name || "Klien") + ' (' + (d.symbol || "-") + ')' +
+'' + (online ? 'ONLINE' : 'OFFLINE') + '' +
+'' +
+'' +
+'Balance' + bal.toFixed(2) + '' +
+'Profit' + (prof >= 0 ? '+' : '') + prof.toFixed(2) + '' +
+'Luput' + (d.expiry || '-') + '' +
+'' +
+'';
 });
-document.getElementById("aTotalClients").innerText = keys.length + " Akaun";
-document.getElementById("aTotalBalance").innerText = totalBal.toFixed(2);
-const tpEl = document.getElementById("aTotalProfit");
-tpEl.innerText = (totalProf >= 0 ? "+" : "") + totalProf.toFixed(2);
-tpEl.className = "text-lg font-bold " + (totalProf >= 0 ? "text-emerald-400" : "text-rose-400");
-listEl.innerHTML = html;
-} catch (e) {
-console.error(e);
+document.getElementById("aCount").textContent = keys.length + " Akaun";
+document.getElementById("aBal").textContent = tBal.toFixed(2);
+const tp = document.getElementById("aProf");
+tp.textContent = (tProf >= 0 ? "+" : "") + tProf.toFixed(2);
+tp.className = "stat-val " + (tProf >= 0 ? "green" : "red");
+list.innerHTML = html;
+} catch (e) {}
 }
-}
-function showError(msg) {
-const errBox = document.getElementById("loginError");
-errBox.innerText = msg;
-errBox.classList.remove("hidden");
-}
-function logout(clearStorage = true) {
-if (refreshTimer) clearInterval(refreshTimer);
-if (clearStorage) {
+function logout(clear = true) {
+if (timer) clearInterval(timer);
+if (clear) {
 localStorage.removeItem("gs_role");
-localStorage.removeItem("gs_account");
-localStorage.removeItem("gs_expiry");
+localStorage.removeItem("gs_acc");
 }
-document.getElementById("clientDashboard").classList.add("hidden");
-document.getElementById("adminDashboard").classList.add("hidden");
+document.getElementById("clientView").classList.add("hidden");
+document.getElementById("adminView").classList.add("hidden");
 document.getElementById("btnLogout").classList.add("hidden");
-document.getElementById("loginSection").classList.remove("hidden");
-document.getElementById("headerSubtitle").innerText = "Sistem Pemantauan Akaun Berlesen";
-}  </script>
-</body>
-</html>
-
-
-
-
+document.getElementById("loginView").classList.remove("hidden");
+document.getElementById("headerSub").textContent = "Sistem Pemantauan Akaun Berlesen";
+}
