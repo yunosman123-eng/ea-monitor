@@ -1,0 +1,332 @@
+Berikut ialah kod HTML penuh (index.html) yang sudah lengkap dan diperbetulkan. Tekan ikon Copy di penjuru atas kanan kotak kod di bawah dan tampal (Paste) ke dalam editor index.html di GitHub anda:
+html
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>GridStop EA Monitor</title>
+  <script src="https://tailwindcss.com"></script>
+  <style>
+    body { background-color: #0b1120; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    .glass { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(148, 163, 184, 0.15); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto">
+
+  <header class="flex items-center justify-between py-3 border-b border-slate-800">
+    <div>
+      <h1 class="text-lg font-bold text-amber-400 tracking-wide">GRIDSTOP MONITOR</h1>
+      <p class="text-xs text-slate-400" id="headerSubtitle">Sistem Pemantauan Akaun Berlesen</p>
+    </div>
+    <button id="btnLogout" onclick="logout()" class="hidden text-xs bg-rose-600/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg font-medium">
+      Log Keluar
+    </button>
+  </header>
+
+  <main id="loginSection" class="my-auto py-8">
+    <div class="glass rounded-2xl p-6 shadow-xl">
+      <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center mb-4">
+        <span class="text-2xl">📊</span>
+      </div>
+      <h2 class="text-xl font-bold mb-1">Log Masuk Akaun</h2>
+      <p class="text-xs text-slate-400 mb-5">Masukkan Nombor Akaun MT4 berlesen anda untuk memantau prestasi secara langsung.</p>
+
+      <label class="block text-xs font-medium text-slate-300 mb-1.5">No. Akaun MT4 / Kod Akses</label>
+      <input type="text" id="loginInput" placeholder="Contoh: 53109795"
+        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-base focus:outline-none focus:border-amber-400 mb-4" />
+
+      <div id="loginError" class="hidden text-xs text-rose-400 bg-rose-950/60 border border-rose-800 rounded-lg p-3 mb-4"></div>
+
+      <button id="btnLogin" onclick="handleLogin()"
+        class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-amber-500/20">
+        Semak Lesen & Masuk
+      </button>
+    </div>
+  </main>
+
+  <main id="clientDashboard" class="hidden py-5 space-y-4">
+    <div class="glass rounded-2xl p-5">
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <span class="text-xs text-slate-400">Nombor Akaun</span>
+          <h2 class="text-2xl font-bold text-white" id="cAccount">-</h2>
+          <p class="text-xs text-slate-400" id="cName">-</p>
+        </div>
+        <span id="cLiveBadge" class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">● LIVE</span>
+      </div>
+      <div class="flex justify-between text-xs text-slate-400 pt-3 border-t border-slate-700/60">
+        <span>Lesen Tamat: <strong class="text-amber-400" id="cExpiry">-</strong></span>
+        <span>Pair: <strong class="text-slate-200" id="cSymbol">-</strong></span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div class="glass rounded-2xl p-4">
+        <p class="text-xs text-slate-400 mb-1">Balance</p>
+        <p class="text-xl font-bold text-white" id="cBalance">0.00</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="text-xs text-slate-400 mb-1">Equity</p>
+        <p class="text-xl font-bold text-sky-400" id="cEquity">0.00</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="text-xs text-slate-400 mb-1">Running Profit</p>
+        <p class="text-xl font-bold text-emerald-400" id="cProfit">0.00</p>
+      </div>
+      <div class="glass rounded-2xl p-4">
+        <p class="text-xs text-slate-400 mb-1">Margin Level</p>
+        <p class="text-xl font-bold text-amber-300" id="cMargin">0%</p>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-4 space-y-2 text-xs">
+      <div class="flex justify-between">
+        <span class="text-slate-400">Status EA:</span>
+        <span class="font-semibold text-white" id="cStatus">-</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400">Posisi Aktif / Pending:</span>
+        <span class="font-semibold text-white" id="cOrders">0 / 0</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-slate-400">Kemas Kini Terakhir:</span>
+        <span class="text-slate-300" id="cLastUpdate">-</span>
+      </div>
+    </div>
+  </main>
+
+  <main id="adminDashboard" class="hidden py-5 space-y-4">
+    <div class="glass rounded-2xl p-4 bg-gradient-to-r from-amber-500/10 to-slate-800/60 border-amber-500/30">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Panel Master Admin</span>
+        <span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded" id="aTotalClients">0 Akaun</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3 mt-3">
+        <div>
+          <p class="text-xs text-slate-400">Jumlah Modal Klien</p>
+          <p class="text-lg font-bold text-white" id="aTotalBalance">0.00</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400">Jumlah Floating</p>
+          <p class="text-lg font-bold text-emerald-400" id="aTotalProfit">0.00</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center">
+      <h3 class="text-sm font-bold text-slate-300">Senarai Semua Akaun Pelanggan</h3>
+      <button onclick="loadAdminData()" class="text-xs text-amber-400 underline">Refresh</button>
+    </div>
+
+    <div id="adminClientList" class="space-y-3">
+      <p class="text-xs text-slate-400 text-center py-6">Memuatkan data semua pelanggan...</p>
+    </div>
+  </main>
+
+  <footer class="text-center text-[11px] text-slate-500 py-3">
+    &copy; 2026 GridStop EA Systems &bull; Data Masa Nyata
+  </footer>
+
+  <script>
+    const GIST_LICENSE_URL = "https://githubusercontent.com";
+    const FIREBASE_DB_URL  = "https://firebasedatabase.app";
+    const ADMIN_PIN        = "ADMIN2026";
+
+    let refreshTimer = null;
+
+    window.onload = () => {
+      const savedRole = localStorage.getItem("gs_role");
+      const savedAcc  = localStorage.getItem("gs_account");
+      if (savedRole === "admin") {
+        showAdminDashboard();
+      } else if (savedRole === "client" && savedAcc) {
+        verifyAndOpenClient(savedAcc);
+      }
+    };
+
+    async function handleLogin() {
+      const val = document.getElementById("loginInput").value.trim();
+      const errBox = document.getElementById("loginError");
+      const btn = document.getElementById("btnLogin");
+      errBox.classList.add("hidden");
+
+      if (!val) {
+        showError("Sila masukkan nombor akaun trading MT4 anda.");
+        return;
+      }
+
+      if (val === ADMIN_PIN) {
+        localStorage.setItem("gs_role", "admin");
+        showAdminDashboard();
+        return;
+      }
+
+      btn.innerText = "Menyemak Lesen...";
+      btn.disabled = true;
+      await verifyAndOpenClient(val);
+      btn.innerText = "Semak Lesen & Masuk";
+      btn.disabled = false;
+    }
+
+    async function verifyAndOpenClient(accNo) {
+      try {
+        const res = await fetch(GIST_LICENSE_URL + "?t=" + Date.now());
+        const text = await res.text();
+        const lines = text.split("\n");
+
+        let found = false;
+        let expiryStr = "";
+
+        for (let line of lines) {
+          line = line.trim();
+          if (!line) continue;
+          const parts = line.split("|");
+          if (parts.length >= 2 && parts[0].trim() === accNo) {
+            found = true;
+            expiryStr = parts[1].trim();
+            break;
+          }
+        }
+
+        if (!found) {
+          logout(false);
+          showError("Akses Ditolak: Nombor akaun " + accNo + " tiada dalam senarai lesen aktif.");
+          return;
+        }
+
+        const expDate = new Date(expiryStr.replace(/\./g, "-") + "T23:59:59");
+        if (new Date() > expDate) {
+          logout(false);
+          showError("Lesen Tamat Tempoh pada " + expiryStr + ". Sila hubungi admin untuk pembaharuan.");
+          return;
+        }
+
+        localStorage.setItem("gs_role", "client");
+        localStorage.setItem("gs_account", accNo);
+        localStorage.setItem("gs_expiry", expiryStr);
+        showClientDashboard(accNo, expiryStr);
+
+      } catch (e) {
+        showError("Gagal menyambung ke pelayan lesen. Sila semak sambungan internet anda.");
+      }
+    }
+
+    function showClientDashboard(accNo, expiryStr) {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("adminDashboard").classList.add("hidden");
+      document.getElementById("clientDashboard").classList.remove("hidden");
+      document.getElementById("btnLogout").classList.remove("hidden");
+      document.getElementById("headerSubtitle").innerText = "Akaun Pelanggan: " + accNo;
+      document.getElementById("cAccount").innerText = accNo;
+      document.getElementById("cExpiry").innerText = expiryStr;
+
+      loadClientData(accNo);
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(() => loadClientData(accNo), 5000);
+    }
+
+    async function loadClientData(accNo) {
+      try {
+        const res = await fetch(`${FIREBASE_DB_URL}/accounts/${accNo}.json`);
+        const data = await res.json();
+        if (!data) {
+          document.getElementById("cStatus").innerText = "Menunggu sambungan pertama dari MT4...";
+          return;
+        }
+
+        const curr = data.currency || "USD";
+Use code with caution.
+document.getElementById("cName").innerText = (data.name || "Trader") + " (" + (data.broker || "MT4") + ")";
+document.getElementById("cSymbol").innerText = data.symbol || "-";
+document.getElementById("cBalance").innerText = Number(data.balance || 0).toFixed(2) + " " + curr;
+document.getElementById("cEquity").innerText = Number(data.equity || 0).toFixed(2) + " " + curr;
+const profit = Number(data.profit || 0);
+const pEl = document.getElementById("cProfit");
+pEl.innerText = (profit >= 0 ? "+" : "") + profit.toFixed(2) + " " + curr;
+pEl.className = "text-xl font-bold " + (profit >= 0 ? "text-emerald-400" : "text-rose-400");
+const mLvl = Number(data.marginLevel || 0);
+document.getElementById("cMargin").innerText = mLvl > 0 ? mLvl.toFixed(1) + "%" : "Tiada Posisi";
+document.getElementById("cStatus").innerText = data.status || "-";
+document.getElementById("cOrders").innerText = ${data.openOrders || 0} Aktif / ${data.pendingOrders || 0} Pending;
+if (data.lastUpdate) {
+const d = new Date(data.lastUpdate * 1000);
+document.getElementById("cLastUpdate").innerText = d.toLocaleTimeString();
+const isOnline = (Math.floor(Date.now() / 1000) - data.lastUpdate) < 60;
+const badge = document.getElementById("cLiveBadge");
+badge.innerText = isOnline ? "● ONLINE" : "● OFFLINE";
+badge.className = "text-xs px-2.5 py-1 rounded-full font-semibold " + (isOnline ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-700 text-slate-400");
+}
+} catch (e) {
+console.error(e);
+}
+}
+function showAdminDashboard() {
+document.getElementById("loginSection").classList.add("hidden");
+document.getElementById("clientDashboard").classList.add("hidden");
+document.getElementById("adminDashboard").classList.remove("hidden");
+document.getElementById("btnLogout").classList.remove("hidden");
+document.getElementById("headerSubtitle").innerText = "Mod Kawalan Penuh Admin";
+loadAdminData();
+if (refreshTimer) clearInterval(refreshTimer);
+refreshTimer = setInterval(loadAdminData, 8000);
+}
+async function loadAdminData() {
+try {
+const res = await fetch(${FIREBASE_DB_URL}/accounts.json);
+const allData = await res.json();
+const listEl = document.getElementById("adminClientList");
+if (!allData) {
+listEl.innerHTML = <p class="text-xs text-slate-400 text-center py-6">Belum ada data akaun diterima daripada MT4.</p>;
+return;
+}
+const keys = Object.keys(allData);
+let totalBal = 0;
+let totalProf = 0;
+let html = "";
+keys.forEach(acc => {
+const d = allData[acc];
+const bal = Number(d.balance || 0);
+const prof = Number(d.profit || 0);
+totalBal += bal;
+totalProf += prof;
+const isOnline = d.lastUpdate && ((Math.floor(Date.now() / 1000) - d.lastUpdate) < 60);
+const profColor = prof >= 0 ? "text-emerald-400" : "text-rose-400";
+html += <div class="glass rounded-xl p-4 space-y-2"> <div class="flex justify-between items-start"> <div> <span class="font-bold text-white text-sm">${acc}</span> <span class="text-xs text-slate-400 block">${d.name || "Klien"} (${d.symbol || "-"})</span> </div> <span class="text-[11px] px-2 py-0.5 rounded-full ${isOnline ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-700 text-slate-400'}"> ${isOnline ? 'ONLINE' : 'OFFLINE'} </span> </div> <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-700/50 text-xs"> <div> <span class="text-slate-400 block">Balance</span> <strong class="text-white">${bal.toFixed(2)}</strong> </div> <div> <span class="text-slate-400 block">Profit</span> <strong class="${profColor}">${prof >= 0 ? '+' : ''}${prof.toFixed(2)}</strong> </div> <div> <span class="text-slate-400 block">Luput</span> <strong class="text-amber-300">${d.expiry || '-'}</strong> </div> </div> <div class="text-[11px] text-slate-400 flex justify-between pt-1"> <span>Status: ${d.status || '-'}</span> <span>Margin: ${Number(d.marginLevel || 0).toFixed(0)}%</span> </div> </div>;
+});
+document.getElementById("aTotalClients").innerText = keys.length + " Akaun";
+document.getElementById("aTotalBalance").innerText = totalBal.toFixed(2);
+const tpEl = document.getElementById("aTotalProfit");
+tpEl.innerText = (totalProf >= 0 ? "+" : "") + totalProf.toFixed(2);
+tpEl.className = "text-lg font-bold " + (totalProf >= 0 ? "text-emerald-400" : "text-rose-400");
+listEl.innerHTML = html;
+} catch (e) {
+console.error(e);
+}
+}
+function showError(msg) {
+const errBox = document.getElementById("loginError");
+errBox.innerText = msg;
+errBox.classList.remove("hidden");
+}
+function logout(clearStorage = true) {
+if (refreshTimer) clearInterval(refreshTimer);
+if (clearStorage) {
+localStorage.removeItem("gs_role");
+localStorage.removeItem("gs_account");
+localStorage.removeItem("gs_expiry");
+}
+document.getElementById("clientDashboard").classList.add("hidden");
+document.getElementById("adminDashboard").classList.add("hidden");
+document.getElementById("btnLogout").classList.add("hidden");
+document.getElementById("loginSection").classList.remove("hidden");
+document.getElementById("headerSubtitle").innerText = "Sistem Pemantauan Akaun Berlesen";
+}  </script>
+</body>
+</html>
+
+
+
+
